@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Surat Data</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* Additional custom styles if needed */
+      body {
+        padding: 20px;
+      }
+    </style>
+    <script>
+      async function fetchSuratData() {
+        const response = await fetch("http://localhost:5000/surat", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.status === 200) {
+          const tableBody = document.getElementById("surat-table-body");
+          tableBody.innerHTML = ""; // Clear existing content
+          data.forEach((surat) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                        <td>${surat.id}</td>
+                        <td>${surat.nama_surat}</td>
+                        <td>${surat.no_surat}</td>
+                        <td>${surat.pihak_pertama}</td>
+                        <td>${surat.pihak_kedua}</td>
+                        <td>${surat.tanggal_masuk}</td>
+                        <td>${surat.tanggal_keluar}</td>
+                        <td>${surat.keterangan}</td>
+                        <td><a href="${surat.file}" target="_blank">View File</a></td>
+                    `;
+            tableBody.appendChild(row);
+          });
+        } else {
+          alert("Failed to fetch data");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", fetchSuratData);
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h2 class="my-4">Surat Data</h2>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead class="thead-light">
+            <tr>
+              <th>ID</th>
+              <th>Nama Surat</th>
+              <th>No Surat</th>
+              <th>Pihak Pertama</th>
+              <th>Pihak Kedua</th>
+              <th>Tanggal Masuk</th>
+              <th>Tanggal Selesai</th>
+              <th>Keterangan</th>
+              <th>File</th>
+            </tr>
+          </thead>
+          <tbody id="surat-table-body">
+            <!-- Data will be inserted here by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>

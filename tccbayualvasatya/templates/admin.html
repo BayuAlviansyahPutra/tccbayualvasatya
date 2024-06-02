@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Admin - Surat Management</title>
+    <link
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        padding-top: 60px;
+      }
+      .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+      }
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+    </style>
+    <script>
+      async function fetchSuratData() {
+        const response = await fetch("http://localhost:5000/surat", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.status === 200) {
+          const tableBody = document.getElementById("surat-table-body");
+          tableBody.innerHTML = "";
+          data.forEach((surat) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                        <td>${surat.id}</td>
+                        <td>${surat.nama_surat}</td>
+                        <td>${surat.no_surat}</td>
+                        <td>${surat.pihak_pertama}</td>
+                        <td>${surat.pihak_kedua}</td>
+                        <td>${surat.tanggal_masuk}</td>
+                        <td>${surat.tanggal_keluar}</td>
+                        <td>${surat.keterangan}</td>
+                        <td><a href="${surat.file}" target="_blank">${surat.file}</a></td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="openEditModal(${surat.id}, '${surat.nama_surat}', '${surat.no_surat}', '${surat.pihak_pertama}', '${surat.pihak_kedua}', '${surat.tanggal_masuk}', '${surat.tanggal_keluar}', '${surat.keterangan}', '${surat.file}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteSurat(${surat.id})">Delete</button>
+                        </td>
+                    `;
+            tableBody.appendChild(row);
+          });
+        } else {
+          alert("Failed to fetch data");
+        }
+      }
+
+      async function deleteSurat(id) {
+        if (confirm("Are you sure you want to delete this record?")) {
+          const response = await fetch(`http://localhost:5000/surat/${id}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (response.status === 200) {
+            alert("Record deleted successfully");
+            fetchSuratData();
+          } else {
+            alert("Failed to delete record");
+          }
+        }
+      }
+
+      function openEditModal(
+        id,
+        nama_surat,
+        no_surat,
+        pihak_pertama,
+        pihak_kedua,
+        tanggal_masuk,
+        tanggal_keluar,
+        keterangan,
+        file
+      ) {
+        document.getElementById("edit-id").value = id;
+        document.getElementById("edit-nama_surat").value = nama_surat;
+        document.getElementById("edit-no_surat").value = no_surat;
+        document.getElementById("edit-pihak_pertama").value = pihak_pertama;
+        document.getElementById("edit-pihak_kedua").value = pihak_kedua;
+        document.getElementById("edit-tanggal_masuk").value = tanggal_masuk;
+        document.getElementById("edit-tanggal_keluar").value = tanggal_keluar;
+        document.getElementById("edit-keterangan").value = keterangan;
+        document.getElementById("edit-file").value = file;
+
+        document.getElementById("editModal").style.display = "block";
+      }
+
+      function closeEditModal() {
+        document.getElementById("editModal").style.display = "none";
+      }
+
+      async function editSurat(event) {
+        event.preventDefault();
+        const id = document.getElementById("edit-id").value;
+        const nama_surat = document.getElementById("edit-nama_surat").value;
+        const no_surat = document.getElementById("edit-no_surat").value;
+        const pihak_pertama =
+          document.getElementById("edit-pihak_pertama").value;
+        const pihak_kedua = document.getElementById("edit-pihak_kedua").value;
+        const tanggal_masuk =
+          document.getElementById("edit-tanggal_masuk").value;
+        const tanggal_keluar = document.getElementById(
+          "edit-tanggal_keluar"
+        ).value;
+        const keterangan = document.getElementById("edit-keterangan").value;
+        const file = document.getElementById("edit-file").value;
+
+        const data = {
+          nama_surat,
+          no_surat,
+          pihak_pertama,
+          pihak_kedua,
+          tanggal_masuk,
+          tanggal_keluar,
+          keterangan,
+          file,
+        };
+
+        const response = await fetch(`http://localhost:5000/surat/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+
+        if (response.status === 200) {
+          alert("Record updated successfully");
+          closeEditModal();
+          fetchSuratData();
+        } else {
+          alert("Failed to update record");
+        }
+      }
+
+      async function addSurat(event) {
+        event.preventDefault();
+        const nama_surat = document.getElementById("add-nama_surat").value;
+        const no_surat = document.getElementById("add-no_surat").value;
+        const pihak_pertama =
+          document.getElementById("add-pihak_pertama").value;
+        const pihak_kedua = document.getElementById("add-pihak_kedua").value;
+        const tanggal_masuk =
+          document.getElementById("add-tanggal_masuk").value;
+        const tanggal_keluar =
+          document.getElementById("add-tanggal_keluar").value;
+        const keterangan = document.getElementById("add-keterangan").value;
+        const file = document.getElementById("add-file").value;
+
+        const data = {
+          nama_surat,
+          no_surat,
+          pihak_pertama,
+          pihak_kedua,
+          tanggal_masuk,
+          tanggal_keluar,
+          keterangan,
+          file,
+        };
+
+        const response = await fetch("http://localhost:5000/surat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+
+        if (response.status === 201) {
+          alert("Record added successfully");
+          document.getElementById("add-form").reset();
+          fetchSuratData();
+        } else {
+          alert("Failed to add record");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", fetchSuratData);
+    </script>
+  </head>
+  <body class="container mt-5">
+    <h2 class="mb-4">Admin - Surat Management</h2>
+    <form id="add-form" onsubmit="addSurat(event)" class="mb-5">
+      <h3>Add New MoU</h3>
+      <div class="form-group">
+        <label for="add-nama_surat">Nama Surat:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="add-nama_surat"
+          name="nama_surat"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="add-no_surat">No Surat:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="add-no_surat"
+          name="no_surat"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="add-pihak_pertama">Pihak Pertama:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="add-pihak_pertama"
+          name="pihak_pertama"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="add-pihak_kedua">Pihak Kedua:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="add-pihak_kedua"
+          name="pihak_kedua"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="add-tanggal_masuk">Tanggal Masuk:</label>
+        <input
+          type="date"
+          class="form-control"
+          id="add-tanggal_masuk"
+          name="tanggal_masuk"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="add-tanggal_keluar">Tanggal Selesai:</label>
+        <input
+          type="date"
+          class="form-control"
+          id="add-tanggal_keluar"
+          name="tanggal_keluar"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="add-keterangan">Keterangan:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="add-keterangan"
+          name="keterangan"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="add-file">File:</label>
+        <input
+          type="text"
+          class="form-control"
+          id="add-file"
+          name="file"
+          required
+        />
+      </div>
+      <button type="submit" class="btn btn-success">Input</button>
+    </form>
+
+    <table class="table table-bordered">
+      <thead class="thead-light">
+        <tr>
+          <th>ID</th>
+          <th>Nama Surat</th>
+          <th>No Surat</th>
+          <th>Pihak Pertama</th>
+          <th>Pihak Kedua</th>
+          <th>Tanggal Masuk</th>
+          <th>Tanggal Selesai</th>
+          <th>Keterangan</th>
+          <th>File</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="surat-table-body">
+        <!-- Data will be inserted here by JavaScript -->
+      </tbody>
+    </table>
+
+    <!-- The Edit Modal -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <form id="edit-form" onsubmit="editSurat(event)">
+          <h3>Edit Surat</h3>
+          <input type="hidden" id="edit-id" />
+          <div class="form-group">
+            <label for="edit-nama_surat">Nama Surat:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="edit-nama_surat"
+              name="nama_surat"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="edit-no_surat">No Surat:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="edit-no_surat"
+              name="no_surat"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="edit-pihak_pertama">Pihak Pertama:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="edit-pihak_pertama"
+              name="pihak_pertama"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="edit-pihak_kedua">Pihak Kedua:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="edit-pihak_kedua"
+              name="pihak_kedua"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="edit-tanggal_masuk">Tanggal Masuk:</label>
+            <input
+              type="date"
+              class="form-control"
+              id="edit-tanggal_masuk"
+              name="tanggal_masuk"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="edit-tanggal_keluar">Tanggal Selesai:</label>
+            <input
+              type="date"
+              class="form-control"
+              id="edit-tanggal_keluar"
+              name="tanggal_keluar"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="edit-keterangan">Keterangan:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="edit-keterangan"
+              name="keterangan"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="edit-file">File:</label>
+            <input
+              type="text"
+              class="form-control"
+              id="edit-file"
+              name="file"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>
